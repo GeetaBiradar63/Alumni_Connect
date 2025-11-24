@@ -114,11 +114,6 @@
     .checkbox-list label { display:flex; gap:8px; align-items:center; padding:6px 6px; cursor:pointer; }
     .small-note{ color:var(--muted); font-size:12px; margin-bottom:6px; }
 
-    /* Ratings select */
-    select.ratings {
-      padding:8px 10px; border-radius:8px; border:1px solid #e6eef6; background:#fff; font-weight:600;
-    }
-
     /* Apply / Clear */
     .filters-actions{
       display:flex; gap:8px; align-items:center; margin-left:12px;
@@ -227,17 +222,7 @@
             </div>
           </div>
 
-          <!-- Ratings compact select -->
-          <div>
-            <select id="ratingSelect" class="ratings" aria-label="Ratings">
-              <option value="">All Ratings</option>
-              <option value="4.5">4.5 & up</option>
-              <option value="4.0">4.0 & up</option>
-              <option value="3.0">3.0 & up</option>
-            </select>
-          </div>
         </div>
-
         <div class="filters-actions">
           <button class="btn ghost" id="clearAllBtn">Clear</button>
           <button class="btn primary" id="applyBtn">Apply</button>
@@ -265,7 +250,6 @@
               <th>Alumni ID</th>
               <th>Name</th>
               <th>Domain</th>
-              <th>Rating</th>
               <th>Status</th>
               <th>Sent</th>
             </tr>
@@ -371,11 +355,11 @@
   <script>
     /* Demo data */
     const alumniData = [
-      { id:2001, name:"Kriti P", dept:"CSE", batch:"2023", role:"Data Analyst", domain:"Data Science", bio:"Data enthusiast & mentor", rating:4.8, img:"https://i.pravatar.cc/160?img=1" },
-      { id:2002, name:"Swapnil T", dept:"CSE", batch:"2021", role:"Software Engineer", domain:"Web Development", bio:"Full-stack developer & mentor", rating:4.6, img:"https://i.pravatar.cc/160?img=2" },
-      { id:2003, name:"Sneha R", dept:"IT", batch:"2020", role:"Security Analyst", domain:"Cybersecurity", bio:"Security specialist", rating:4.9, img:"https://i.pravatar.cc/160?img=3" },
-      { id:2004, name:"Ramesh K", dept:"CSE", batch:"2022", role:"ML Engineer", domain:"AI/ML", bio:"ML & MLOps engineer", rating:4.3, img:"https://i.pravatar.cc/160?img=4" },
-      { id:2005, name:"Priya S", dept:"EEE", batch:"2021", role:"Data Analyst", domain:"Data Science", bio:"Analytics and visualization", rating:4.7, img:"https://i.pravatar.cc/160?img=5" }
+      { id:2001, name:"Kriti P", dept:"CSE", batch:"2023", role:"Data Analyst", domain:"Data Science", bio:"Data enthusiast & mentor", img:"https://i.pravatar.cc/160?img=1" },
+      { id:2002, name:"Swapnil T", dept:"CSE", batch:"2021", role:"Software Engineer", domain:"Web Development", bio:"Full-stack developer & mentor", img:"https://i.pravatar.cc/160?img=2" },
+      { id:2003, name:"Sneha R", dept:"IT", batch:"2020", role:"Security Analyst", domain:"Cybersecurity", bio:"Security specialist", img:"https://i.pravatar.cc/160?img=3" },
+      { id:2004, name:"Ramesh K", dept:"CSE", batch:"2022", role:"ML Engineer", domain:"AI/ML", bio:"ML & MLOps engineer", img:"https://i.pravatar.cc/160?img=4" },
+      { id:2005, name:"Priya S", dept:"EEE", batch:"2021", role:"Data Analyst", domain:"Data Science", bio:"Analytics and visualization", img:"https://i.pravatar.cc/160?img=5" }
     ];
     let connections = JSON.parse(localStorage.getItem("ac_connections_demo") || "[]");
 
@@ -459,7 +443,6 @@
       $("searchBox").value = "";
       clearDomain();
       clearYear();
-      $("ratingSelect").value = "";
       applyFilters();
     });
 
@@ -468,8 +451,7 @@
       const q = ($("searchBox").value || "").trim().toLowerCase();
       const domains = Array.from(document.querySelectorAll("#domainList input[type=checkbox]:checked")).map(c=>c.value);
       const years = Array.from(document.querySelectorAll("#yearList input[type=checkbox]:checked")).map(c=>c.value);
-      const rating = $("ratingSelect").value ? parseFloat($("ratingSelect").value) : 0;
-      return { q, domains, years, rating };
+      return { q, domains, years };
     }
 
     /* Apply filters and render */
@@ -479,10 +461,8 @@
         const nameMatch = !f.q || a.name.toLowerCase().includes(f.q) || a.domain.toLowerCase().includes(f.q) || a.role.toLowerCase().includes(f.q);
         const domainMatch = f.domains.length === 0 || f.domains.includes(a.domain);
         const yearMatch = f.years.length === 0 || f.years.includes(String(a.batch));
-        const ratingMatch = a.rating >= f.rating;
-        return nameMatch && domainMatch && yearMatch && ratingMatch;
+        return nameMatch && domainMatch && yearMatch;
       });
-      list.sort((x,y)=> (y.rating||0) - (x.rating||0));
       renderAlumniList(list);
       updateFilterButtonLabels();
     }
@@ -510,7 +490,6 @@
                 <div class="meta">${a.role} • ${a.dept} • ${a.domain}</div>
               </div>
               <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
-                <div style="font-weight:800;color:#b45309">${a.rating} ★</div>
                 <div class="card-actions">
                   <button class="btn primary" onclick="openConnect(${a.id})">Connect</button>
                 </div>
@@ -533,7 +512,7 @@
       $("modalAvatar").src = a.img;
       $("modalName").textContent = a.name;
       $("modalBatch").textContent = `(${a.batch})`;
-      $("modalMeta").textContent = `${a.role} • ${a.dept} • ${a.domain} • ${a.rating} ★`;
+      $("modalMeta").textContent = `${a.role} • ${a.dept} • ${a.domain}`;
       $("modalBio").textContent = a.bio;
       $("modalMessage").value = "";
       $("modalBackdrop").style.display = "flex";
@@ -553,7 +532,6 @@
         alumniId: currentAlumni.id,
         alumniName: currentAlumni.name,
         domain: currentAlumni.domain,
-        rating: currentAlumni.rating,
         message: msg,
         status: "Pending",
         createdAt: new Date().toISOString()
@@ -578,7 +556,6 @@
           <td>${r.alumniId}</td>
           <td>${r.alumniName}</td>
           <td>${r.domain}</td>
-          <td>${r.rating} ★</td>
           <td>${r.status}</td>
           <td>${new Date(r.createdAt).toLocaleDateString()}</td>
         `;
